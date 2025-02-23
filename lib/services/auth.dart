@@ -1,15 +1,13 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart' as models;
-import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
 
 class AuthService {
-  late final Account _account;
-  static String? _projectId; // Cache project ID
+  static const String projectId = "67b70a0100373a0c8421";
 
-  AuthService._internal(String projectId)
+  final Account _account;
+
+  AuthService()
     : _account = Account(
         Client()
           ..setEndpoint('https://cloud.appwrite.io/v1')
@@ -17,61 +15,10 @@ class AuthService {
           ..setSelfSigned(status: false),
       );
 
-  static Future<AuthService> create() async {
-    final projectId = await _fetchProjectId();
-    return AuthService._internal(projectId);
-  }
-
-  static Future<String> _fetchProjectId() async {
-    if (_projectId != null) return _projectId!;
-
-    // Check if .env exists before trying to load it (for local development)
-    if (await _envFileExists()) {
-      try {
-        final localProjectId = dotenv.env['APPWRITE_PROJECT_ID'];
-        if (localProjectId != null && localProjectId.isNotEmpty) {
-          _projectId = localProjectId;
-          return _projectId!;
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print("Error loading .env file: ${e.toString()}");
-        }
-      }
-    }
-
-    // If .env is missing, fetch from /env.js (for Netlify)
-    try {
-      final response = await http.get(Uri.parse('/env.js'));
-      if (response.statusCode == 200) {
-        final scriptContent = response.body;
-        final match = RegExp(
-          r'APPWRITE_PROJECT_ID:\s*"([^"]+)"',
-        ).firstMatch(scriptContent);
-        if (match != null) {
-          _projectId = match.group(1);
-          return _projectId!;
-        }
-      }
-      throw Exception('Failed to load project ID from /env.js');
-    } catch (e) {
-      throw Exception('Error fetching project ID: ${e.toString()}');
-    }
-  }
-
-  static Future<bool> _envFileExists() async {
-    try {
-      await dotenv.load(fileName: ".env");
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
   Future<models.Session?> getSession() async {
     try {
       return await _account.getSession(sessionId: 'current');
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
@@ -79,7 +26,7 @@ class AuthService {
   Future<models.User?> getCurrentUser() async {
     try {
       return await _account.get();
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
@@ -102,7 +49,7 @@ class AuthService {
         email: email,
         password: password,
       );
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
@@ -116,11 +63,8 @@ class AuthService {
   }
 }
 
-final authServiceProvider = FutureProvider<AuthService>((ref) async {
-  return await AuthService.create();
-});
+final authServiceProvider = Provider<AuthService>((ref) => AuthService());
 
 final userProvider = FutureProvider<models.User?>((ref) async {
-  final authService = await ref.watch(authServiceProvider.future);
-  return authService.getCurrentUser();
+  return ref.watch(authServiceProvider).getCurrentUser();
 });

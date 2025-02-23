@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,10 +7,7 @@ import './screens/home.dart';
 import './screens/login.dart';
 import './theme.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env');
-
+void main() {
   runApp(ProviderScope(child: MyApp()));
 }
 
@@ -32,7 +28,7 @@ class MyApp extends ConsumerWidget {
             path: '/',
             builder:
                 (context, state) =>
-                    authState == null ? LoginScreen() : HomeScreen(),
+            authState == null ? LoginScreen() : HomeScreen(),
           ),
           GoRoute(path: '/login', builder: (context, state) => LoginScreen()),
           GoRoute(path: '/home', builder: (context, state) => HomeScreen()),
