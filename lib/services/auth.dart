@@ -28,7 +28,7 @@ class AuthService {
     // Check if running on Netlify (determined at build time)
     const bool isNetlify = bool.fromEnvironment(
       "IS_NETLIFY",
-      defaultValue: false,
+      defaultValue: true,
     );
 
     if (!isNetlify) {
