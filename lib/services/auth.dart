@@ -2,9 +2,9 @@ import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart' as models;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final projectId = const String.fromEnvironment('APPWRITE_PROJECT_ID');
-
 class AuthService {
+  static const String projectId = "67b70a0100373a0c8421";
+
   final Account _account;
 
   AuthService()
@@ -18,7 +18,7 @@ class AuthService {
   Future<models.Session?> getSession() async {
     try {
       return await _account.getSession(sessionId: 'current');
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
@@ -26,7 +26,7 @@ class AuthService {
   Future<models.User?> getCurrentUser() async {
     try {
       return await _account.get();
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
@@ -49,7 +49,7 @@ class AuthService {
         email: email,
         password: password,
       );
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }

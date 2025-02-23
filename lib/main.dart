@@ -28,7 +28,7 @@ class MyApp extends ConsumerWidget {
             path: '/',
             builder:
                 (context, state) =>
-                    authState == null ? LoginScreen() : HomeScreen(),
+            authState == null ? LoginScreen() : HomeScreen(),
           ),
           GoRoute(path: '/login', builder: (context, state) => LoginScreen()),
           GoRoute(path: '/home', builder: (context, state) => HomeScreen()),
