@@ -1,37 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:go_router/go_router.dart';
 
-part 'main.g.dart';
-
-// We create a "provider", which will store a value (here "Hello world").
-// By using a provider, this allows us to mock/override the value exposed.
-@riverpod
-String helloWorld(Ref ref) {
-  return 'Hello world';
-}
+import './providers/auth.dart';
+import './screens/home.dart';
+import './screens/login.dart';
+import './theme.dart';
 
 void main() {
-  runApp(
-    // For widgets to be able to read providers, we need to wrap the entire
-    // application in a "ProviderScope" widget.
-    // This is where the state of our providers will be stored.
-    ProviderScope(child: MyApp()),
-  );
+  runApp(ProviderScope(child: MyApp()));
 }
 
-// Extend ConsumerWidget instead of StatelessWidget, which is exposed by Riverpod
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final String value = ref.watch(helloWorldProvider);
+    final authState = ref.watch(authStateProvider);
 
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: const Text('Example')),
-        body: Center(child: Text(value)),
+    return MaterialApp.router(
+      theme: baseTheme,
+      routerConfig: GoRouter(
+        initialLocation: '/',
+        redirect: (context, state) => authState == null ? '/login' : '/home',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder:
+                (context, state) =>
+                    authState == null ? LoginScreen() : HomeScreen(),
+          ),
+          GoRoute(path: '/login', builder: (context, state) => LoginScreen()),
+          GoRoute(path: '/home', builder: (context, state) => HomeScreen()),
+        ],
       ),
     );
   }
