@@ -25,16 +25,9 @@ class AuthService {
   static Future<String> _fetchProjectId() async {
     if (_projectId != null) return _projectId!;
 
-    // Check if running on Netlify (determined at build time)
-    const bool isNetlify = bool.fromEnvironment(
-      "IS_NETLIFY",
-      defaultValue: true,
-    );
-
-    if (!isNetlify) {
-      // Try loading .env in local development
+    // Check if .env exists before trying to load it (for local development)
+    if (await _envFileExists()) {
       try {
-        await dotenv.load(fileName: ".env");
         final localProjectId = dotenv.env['APPWRITE_PROJECT_ID'];
         if (localProjectId != null && localProjectId.isNotEmpty) {
           _projectId = localProjectId;
@@ -42,12 +35,12 @@ class AuthService {
         }
       } catch (e) {
         if (kDebugMode) {
-          print(".env not found or unreadable, falling back to /env.js");
+          print("Error loading .env file: ${e.toString()}");
         }
       }
     }
 
-    // If running in production (Netlify) or if .env is missing, fetch from /env.js
+    // If .env is missing, fetch from /env.js (for Netlify)
     try {
       final response = await http.get(Uri.parse('/env.js'));
       if (response.statusCode == 200) {
@@ -63,6 +56,15 @@ class AuthService {
       throw Exception('Failed to load project ID from /env.js');
     } catch (e) {
       throw Exception('Error fetching project ID: ${e.toString()}');
+    }
+  }
+
+  static Future<bool> _envFileExists() async {
+    try {
+      await dotenv.load(fileName: ".env");
+      return true;
+    } catch (e) {
+      return false;
     }
   }
 
